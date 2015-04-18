@@ -18,7 +18,7 @@ class Unweapon < Dare::Window
     G.set_level(@level)
 
     @player = Player.new
-
+    G.set_player(@player)
     #So much camera setup. some abstraction is missing/wrong :[
     @camera = Camera.new(*G.mid)
     G.set_camera(@camera)
@@ -35,13 +35,15 @@ class Unweapon < Dare::Window
   end
 
   def update
-    @player.update
+    @player.update(self)
+    @level.update(self)
     @camera.update(self)
   end
 
 end
 
-Unweapon.new.run!
+LD = Unweapon.new
+LD.run!
 
 # TODO
 # DONE Create Player

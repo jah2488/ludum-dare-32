@@ -8,16 +8,8 @@ class Camera
     }
   end
 
-  def bounds
-    @bounds
-  end
-
   def track(obj)
     @tracking = obj
-  end
-
-  def tracking
-    @tracking
   end
 
   def draw(ctx)
@@ -26,21 +18,36 @@ class Camera
   end
 
   def update(ctx)
-    speed = (if tracking
-               tracking.speed
-             else
-               1
-             end)
-    @y -= speed if ctx.button_down? Dare::KbDown
-    @x -= speed if ctx.button_down? Dare::KbRight
-    @x += speed if ctx.button_down? Dare::KbLeft
-    @y += speed if ctx.button_down? Dare::KbUp
+    speed = 1
+    speed = tracking.speed if tracking
+    tracking.moving = false
+
+    if ctx.button_down?(Dare::KbDown)  || ctx.button_down?(Dare::KbS)
+      @y -= speed
+      tracking.on_move(DIR::DOWN)
+      tracking.moving = true
+    end
+
+    if ctx.button_down?(Dare::KbRight) || ctx.button_down?(Dare::KbD)
+      @x -= speed
+      tracking.on_move(DIR::RIGHT)
+      tracking.moving = true
+    end
+
+    if ctx.button_down?(Dare::KbLeft)  || ctx.button_down?(Dare::KbA)
+      @x += speed
+      tracking.on_move(DIR::LEFT)
+      tracking.moving = true
+    end
+
+    if ctx.button_down?(Dare::KbUp)    || ctx.button_down?(Dare::KbW)
+      @y += speed
+      tracking.on_move(DIR::UP)
+      tracking.moving = true
+    end
+
     @x = G.clamp(@x, bounds[:x][0], bounds[:x][1])
     @y = G.clamp(@y, bounds[:y][0], bounds[:y][1])
-    if tracking
-      tracking.x = @x
-      tracking.y = @y
-    end
   end
 end
 

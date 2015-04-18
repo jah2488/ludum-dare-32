@@ -16384,7 +16384,7 @@ Opal.modules["lib/game"] = function(Opal) {
 
     var def = self.$$proto, $scope = self.$$scope;
 
-    def.current_level = def.camera = nil;
+    def.current_level = def.camera = def.player = nil;
     self.$attr_reader("width", "height", "tilesize", "current_level");
 
     def.$initialize = function(width, height, tilesize) {
@@ -16414,6 +16414,30 @@ Opal.modules["lib/game"] = function(Opal) {
       var self = this;
 
       return self.current_level = level;
+    };
+
+    def.$camera = function() {
+      var self = this;
+
+      return self.camera;
+    };
+
+    def.$set_camera = function(cam) {
+      var self = this;
+
+      return self.camera = cam;
+    };
+
+    def.$player = function() {
+      var self = this;
+
+      return self.player;
+    };
+
+    def.$set_player = function(player) {
+      var self = this;
+
+      return self.player = player;
     };
 
     def.$mid = function() {
@@ -16450,23 +16474,11 @@ Opal.modules["lib/game"] = function(Opal) {
       return self.$clamp(var$, 0, self.$width());
     };
 
-    def.$bounds_clamp_y = function(var$) {
+    return (def.$bounds_clamp_y = function(var$) {
       var self = this;
 
       return self.$clamp(var$, 0, self.$height());
-    };
-
-    def.$camera = function() {
-      var self = this;
-
-      return self.camera;
-    };
-
-    return (def.$set_camera = function(cam) {
-      var self = this;
-
-      return self.camera = cam;
-    }, nil) && 'set_camera';
+    }, nil) && 'bounds_clamp_y';
   })(self, null)
 };
 
@@ -16481,14 +16493,14 @@ Opal.modules["lib/camera"] = function(Opal) {
   }
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $hash2 = Opal.hash2;
 
-  Opal.add_stubs(['$attr_accessor', '$width', '$height', '$tracking', '$draw_rect', '$x', '$y', '$speed', '$button_down?', '$clamp', '$[]', '$bounds', '$x=', '$y=']);
+  Opal.add_stubs(['$attr_accessor', '$width', '$height', '$tracking', '$draw_rect', '$x', '$y', '$speed', '$moving=', '$button_down?', '$on_move', '$clamp', '$[]', '$bounds']);
   return (function($base, $super) {
     function $Camera(){};
     var self = $Camera = $klass($base, $super, 'Camera', $Camera);
 
     var def = self.$$proto, $scope = self.$$scope;
 
-    def.bounds = def.tracking = def.y = def.x = nil;
+    def.y = def.x = nil;
     self.$attr_accessor("x", "y", "tracking", "bounds");
 
     def.$initialize = function(x, y) {
@@ -16505,22 +16517,10 @@ Opal.modules["lib/camera"] = function(Opal) {
       return self.bounds = $hash2(["x", "y"], {"x": [0, $scope.get('G').$width()], "y": [0, $scope.get('G').$height()]});
     };
 
-    def.$bounds = function() {
-      var self = this;
-
-      return self.bounds;
-    };
-
     def.$track = function(obj) {
       var self = this;
 
       return self.tracking = obj;
-    };
-
-    def.$tracking = function() {
-      var self = this;
-
-      return self.tracking;
     };
 
     def.$draw = function(ctx) {
@@ -16534,27 +16534,28 @@ Opal.modules["lib/camera"] = function(Opal) {
     return (def.$update = function(ctx) {
       var $a, $b, self = this, speed = nil;
 
-      speed = ((function() {if ((($a = self.$tracking()) !== nil && (!$a.$$is_boolean || $a == true))) {
-        return self.$tracking().$speed()
-        } else {
-        return 1
-      }; return nil; })());
-      if ((($a = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbDown')))) !== nil && (!$a.$$is_boolean || $a == true))) {
-        self.y = $rb_minus(self.y, speed)};
-      if ((($a = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbRight')))) !== nil && (!$a.$$is_boolean || $a == true))) {
-        self.x = $rb_minus(self.x, speed)};
-      if ((($a = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbLeft')))) !== nil && (!$a.$$is_boolean || $a == true))) {
-        self.x = $rb_plus(self.x, speed)};
-      if ((($a = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbUp')))) !== nil && (!$a.$$is_boolean || $a == true))) {
-        self.y = $rb_plus(self.y, speed)};
-      self.x = $scope.get('G').$clamp(self.x, self.$bounds()['$[]']("x")['$[]'](0), self.$bounds()['$[]']("x")['$[]'](1));
-      self.y = $scope.get('G').$clamp(self.y, self.$bounds()['$[]']("y")['$[]'](0), self.$bounds()['$[]']("y")['$[]'](1));
+      speed = 1;
       if ((($a = self.$tracking()) !== nil && (!$a.$$is_boolean || $a == true))) {
-        (($a = [self.x]), $b = self.$tracking(), $b['$x='].apply($b, $a), $a[$a.length-1]);
-        return (($a = [self.y]), $b = self.$tracking(), $b['$y='].apply($b, $a), $a[$a.length-1]);
-        } else {
-        return nil
-      };
+        speed = self.$tracking().$speed()};
+      (($a = [false]), $b = self.$tracking(), $b['$moving='].apply($b, $a), $a[$a.length-1]);
+      if ((($a = ((($b = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbDown')))) !== false && $b !== nil) ? $b : ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbS'))))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.y = $rb_minus(self.y, speed);
+        self.$tracking().$on_move((($scope.get('DIR')).$$scope.get('DOWN')));
+        (($a = [true]), $b = self.$tracking(), $b['$moving='].apply($b, $a), $a[$a.length-1]);};
+      if ((($a = ((($b = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbRight')))) !== false && $b !== nil) ? $b : ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbD'))))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.x = $rb_minus(self.x, speed);
+        self.$tracking().$on_move((($scope.get('DIR')).$$scope.get('RIGHT')));
+        (($a = [true]), $b = self.$tracking(), $b['$moving='].apply($b, $a), $a[$a.length-1]);};
+      if ((($a = ((($b = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbLeft')))) !== false && $b !== nil) ? $b : ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbA'))))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.x = $rb_plus(self.x, speed);
+        self.$tracking().$on_move((($scope.get('DIR')).$$scope.get('LEFT')));
+        (($a = [true]), $b = self.$tracking(), $b['$moving='].apply($b, $a), $a[$a.length-1]);};
+      if ((($a = ((($b = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbUp')))) !== false && $b !== nil) ? $b : ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbW'))))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.y = $rb_plus(self.y, speed);
+        self.$tracking().$on_move((($scope.get('DIR')).$$scope.get('UP')));
+        (($a = [true]), $b = self.$tracking(), $b['$moving='].apply($b, $a), $a[$a.length-1]);};
+      self.x = $scope.get('G').$clamp(self.x, self.$bounds()['$[]']("x")['$[]'](0), self.$bounds()['$[]']("x")['$[]'](1));
+      return self.y = $scope.get('G').$clamp(self.y, self.$bounds()['$[]']("y")['$[]'](0), self.$bounds()['$[]']("y")['$[]'](1));
     }, nil) && 'update';
   })(self, null)
 };
@@ -16562,14 +16563,11 @@ Opal.modules["lib/camera"] = function(Opal) {
 /* Generated by Opal 0.7.0.beta3 */
 Opal.modules["lib/player"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
+  function $rb_gt(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs > rhs : lhs['$>'](rhs);
+  }
   function $rb_plus(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs + rhs : lhs['$+'](rhs);
-  }
-  function $rb_divide(lhs, rhs) {
-    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs / rhs : lhs['$/'](rhs);
-  }
-  function $rb_minus(lhs, rhs) {
-    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
   }
   function $rb_ge(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs >= rhs : lhs['$>='](rhs);
@@ -16577,67 +16575,205 @@ Opal.modules["lib/player"] = function(Opal) {
   function $rb_le(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs <= rhs : lhs['$<='](rhs);
   }
-  var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $hash2 = Opal.hash2;
+  function $rb_minus(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
+  }
+  function $rb_divide(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs / rhs : lhs['$/'](rhs);
+  }
+  var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $module = Opal.module, $hash2 = Opal.hash2;
 
-  Opal.add_stubs(['$attr_accessor', '$new', '$draw_rect', '$x', '$y', '$draw', '$mid', '$width', '$pixel_width', '$current_level', '$height', '$pixel_height', '$[]', '$upper_level_bounds', '$lower_level_bounds', '$puts']);
+  Opal.add_stubs(['$new', '$attr_accessor', '$load_tiles', '$frames_loaded?', '$draw', '$[]', '$mid', '$moving?', '$end', '$start', '$draw_rect', '$length', '$coords', '$upper_level_bounds', '$lower_level_bounds', '$puts', '$button_down?', '$nil?', '$drop_item', '$x=', '$y=', '$!', '$==', '$===', '$held=', '$pixel_width', '$current_level', '$width', '$pixel_height', '$height', '$-@', '$mid_x', '$offset_x', '$mid_y', '$offset_y']);
+  (function($base, $super) {
+    function $Null(){};
+    var self = $Null = $klass($base, $super, 'Null', $Null);
+
+    var def = self.$$proto, $scope = self.$$scope, TMP_1;
+
+    def.$to_s = function() {
+      var self = this;
+
+      return "I don't exist";
+    };
+
+    def['$!'] = function() {
+      var self = this;
+
+      return true;
+    };
+
+    def['$nil?'] = function() {
+      var self = this;
+
+      return true;
+    };
+
+    def['$falsey?'] = function() {
+      var self = this;
+
+      return true;
+    };
+
+    return (def.$method_missing = TMP_1 = function(name, args) {
+      var self = this, $iter = TMP_1.$$p, block = $iter || nil;
+
+      args = $slice.call(arguments, 1);
+      TMP_1.$$p = null;
+      return self;
+    }, nil) && 'method_missing';
+  })(self, null);
+  (function($base) {
+    var self = $module($base, 'DIR');
+
+    var def = self.$$proto, $scope = self.$$scope;
+
+    Opal.cdecl($scope, 'UP', "UP");
+
+    Opal.cdecl($scope, 'DOWN', "DOWN");
+
+    Opal.cdecl($scope, 'LEFT', "LEFT");
+
+    Opal.cdecl($scope, 'RIGHT', "RIGHT");
+    
+  })(self);
+  (function($base, $super) {
+    function $Animation(){};
+    var self = $Animation = $klass($base, $super, 'Animation', $Animation);
+
+    var def = self.$$proto, $scope = self.$$scope;
+
+    return nil;
+  })(self, $scope.get('Struct').$new("start", "end"));
   return (function($base, $super) {
     function $Player(){};
     var self = $Player = $klass($base, $super, 'Player', $Player);
 
     var def = self.$$proto, $scope = self.$$scope;
 
-    def.img = nil;
-    self.$attr_accessor("x", "y", "speed", "width", "height");
+    def.walk = def.frames = def.current_frame = def.tick = def.current_animation = def.pickup = def.item = def.moving = def.facing = def.left = def.right = def.back = nil;
+    self.$attr_accessor("x", "y", "speed", "width", "height", "item", "pickup", "moving");
 
     def.$initialize = function() {
       var self = this;
 
       self.x = self.y = 0;
-      self.img = (($scope.get('Dare')).$$scope.get('Image')).$new("assets/player.png");
+      self.frames = (($scope.get('Dare')).$$scope.get('Image')).$load_tiles("assets/anim_player.png", $hash2(["width", "height"], {"width": 32, "height": 32}));
+      self.right = $scope.get('Animation').$new(12, 14);
+      self.left = $scope.get('Animation').$new(15, 17);
+      self.walk = $scope.get('Animation').$new(0, 5);
+      self.back = $scope.get('Animation').$new(6, 11);
+      self.facing = (($scope.get('DIR')).$$scope.get('DOWN'));
+      self.current_animation = self.walk;
+      self.current_frame = 0;
       self.speed = 2;
       self.width = 32;
-      return self.height = 32;
+      self.height = 32;
+      self.item = $scope.get('Null').$new();
+      return self.tick = 0;
     };
 
     def.$draw = function(ctx) {
+      var $a, $b, self = this;
+
+      if ((($a = self['$frames_loaded?']()) !== nil && (!$a.$$is_boolean || $a == true))) {
+        ($a = self.frames['$[]'](self.current_frame)).$draw.apply($a, [].concat($scope.get('G').$mid()));
+        if ((($b = self['$moving?']()) !== nil && (!$b.$$is_boolean || $b == true))) {
+          if ($rb_gt(self.tick, 10)) {
+            self.tick = 0;
+            self.current_frame = $rb_plus(self.current_frame, 1);
+            } else {
+            self.tick = $rb_plus(self.tick, 1)
+          };
+          if ($rb_ge(self.current_frame, self.current_animation.$end())) {
+            self.current_frame = self.current_animation.$start()};};};
+      if ((($b = self.pickup) !== nil && (!$b.$$is_boolean || $b == true))) {
+        return ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": $scope.get('G').$mid(), "width": 2, "height": 10, "color": "red"}))
+        } else {
+        return nil
+      };
+    };
+
+    def['$frames_loaded?'] = function() {
       var $a, self = this;
 
-      ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": [self.$x(), self.$y()], "width": 1, "height": 1, "color": "blue"}));
-      return ($a = self.img).$draw.apply($a, [].concat($scope.get('G').$mid()));
+      return ($a = self.frames, $a !== false && $a !== nil ?$rb_gt(self.frames.$length(), 1) : $a);
+    };
+
+    def.$update = function(ctx) {
+      var $a, $b, $c, $d, self = this;
+
+      if ((($a = ((($b = ((($c = ((($d = $rb_ge(self.$coords()['$[]']("x"), self.$upper_level_bounds()['$[]']("x"))) !== false && $d !== nil) ? $d : $rb_ge(self.$coords()['$[]']("y"), self.$upper_level_bounds()['$[]']("y")))) !== false && $c !== nil) ? $c : $rb_le(self.$coords()['$[]']("x"), self.$lower_level_bounds()['$[]']("x")))) !== false && $b !== nil) ? $b : $rb_le(self.$coords()['$[]']("y"), self.$lower_level_bounds()['$[]']("y")))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.$puts("ouch")};
+      if ((($a = ($b = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbSpace'))), $b !== false && $b !== nil ?self.item['$nil?']() : $b)) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.pickup = true
+        } else {
+        self.pickup = false
+      };
+      if ((($a = ctx['$button_down?']((($scope.get('Dare')).$$scope.get('KbShift')))) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.$drop_item()};
+      return $a = [self.$coords()['$[]']("x"), self.$coords()['$[]']("y")], self.item['$x=']($a[0]), self.item['$y=']($a[1]);
+    };
+
+    def['$moving?'] = function() {
+      var self = this;
+
+      return self.moving;
+    };
+
+    def.$on_move = function(dir) {
+      var $a, self = this, $case = nil;
+
+      if ((($a = self.facing['$=='](dir)['$!']()) !== nil && (!$a.$$is_boolean || $a == true))) {
+        self.facing = dir;
+        $case = self.facing;if ((($scope.get('DIR')).$$scope.get('DOWN'))['$===']($case)) {self.current_animation = self.walk}else if ((($scope.get('DIR')).$$scope.get('LEFT'))['$===']($case)) {self.current_animation = self.left}else if ((($scope.get('DIR')).$$scope.get('RIGHT'))['$===']($case)) {self.current_animation = self.right}else if ((($scope.get('DIR')).$$scope.get('UP'))['$===']($case)) {self.current_animation = self.back};
+        return self.current_frame = self.current_animation.$start();
+        } else {
+        return nil
+      };
+    };
+
+    def.$set_item = function(item) {
+      var $a, $b, self = this;
+
+      self.item = item;
+      return (($a = [true]), $b = self.item, $b['$held='].apply($b, $a), $a[$a.length-1]);
+    };
+
+    def.$drop_item = function() {
+      var $a, $b, self = this;
+
+      (($a = [false]), $b = self.item, $b['$held='].apply($b, $a), $a[$a.length-1]);
+      return self.item = $scope.get('Null').$new();
     };
 
     def.$upper_level_bounds = function() {
       var self = this;
 
-      return $hash2(["x", "y"], {"x": $rb_plus($rb_plus(self.$width(), $scope.get('G').$width()), ($rb_divide($scope.get('G').$current_level().$pixel_width(), 10))), "y": $rb_plus($rb_plus(self.$height(), $scope.get('G').$height()), ($rb_divide($scope.get('G').$current_level().$pixel_height(), 8)))});
+      return $hash2(["x", "y"], {"x": $rb_minus($scope.get('G').$current_level().$pixel_width(), $rb_divide(self.$width(), 2)), "y": $rb_minus($scope.get('G').$current_level().$pixel_height(), $rb_divide(self.$height(), 2))});
     };
 
     def.$lower_level_bounds = function() {
       var self = this;
 
-      return $hash2(["x", "y"], {"x": $rb_minus(-50, self.$width()), "y": $rb_minus(-50, self.$height())});
+      return $hash2(["x", "y"], {"x": $rb_divide(self.$width()['$-@'](), 2), "y": $rb_divide(self.$height()['$-@'](), 2)});
     };
 
-    return (def.$update = function() {
-      var $a, $b, $c, $d, self = this;
+    return (def.$coords = function() {
+      var self = this;
 
-      if ((($a = ((($b = ((($c = ((($d = $rb_ge(self.$x(), self.$upper_level_bounds()['$[]']("x"))) !== false && $d !== nil) ? $d : $rb_ge(self.$y(), self.$upper_level_bounds()['$[]']("y")))) !== false && $c !== nil) ? $c : $rb_le(self.$x(), self.$lower_level_bounds()['$[]']("x")))) !== false && $b !== nil) ? $b : $rb_le(self.$y(), self.$lower_level_bounds()['$[]']("y")))) !== nil && (!$a.$$is_boolean || $a == true))) {
-        return self.$puts("ouch")
-        } else {
-        return nil
-      };
-    }, nil) && 'update';
-  })(self, null)
+      return $hash2(["x", "y"], {"x": $rb_minus($scope.get('G').$mid_x(), $scope.get('G').$current_level().$offset_x()), "y": $rb_minus($scope.get('G').$mid_y(), $scope.get('G').$current_level().$offset_y())});
+    }, nil) && 'coords';
+  })(self, null);
 };
 
 /* Generated by Opal 0.7.0.beta3 */
 Opal.modules["lib/level"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
-  function $rb_minus(lhs, rhs) {
-    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
-  }
   function $rb_plus(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs + rhs : lhs['$+'](rhs);
+  }
+  function $rb_minus(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
   }
   function $rb_divide(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs / rhs : lhs['$/'](rhs);
@@ -16647,7 +16783,7 @@ Opal.modules["lib/level"] = function(Opal) {
   }
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $hash2 = Opal.hash2, $range = Opal.range;
 
-  Opal.add_stubs(['$attr_reader', '$set_item_placement', '$Array', '$each', '$random_placement', '$x=', '$y=', '$puts', '$x', '$y', '$items', '$camera', '$pixel_width', '$pixel_height', '$draw_rect', '$draw', '$width', '$tilesize', '$height', '$sample']);
+  Opal.add_stubs(['$attr_reader', '$set_item_placement', '$Array', '$each', '$random_placement', '$x=', '$y=', '$items', '$draw_rect', '$offset_x', '$offset_y', '$pixel_width', '$pixel_height', '$x', '$y', '$draw', '$update', '$camera', '$width', '$tilesize', '$height', '$sample', '$select', '$to_proc']);
   return (function($base, $super) {
     function $Level(){};
     var self = $Level = $klass($base, $super, 'Level', $Level);
@@ -16698,22 +16834,50 @@ Opal.modules["lib/level"] = function(Opal) {
 
       return ($a = ($b = self.$items()).$each, $a.$$p = (TMP_1 = function(item){var self = TMP_1.$$s || this, $a;
 if (item == null) item = nil;
-      $a = Opal.to_ary(self.$random_placement()), item['$x='](($a[0] == null ? nil : $a[0])), item['$y='](($a[1] == null ? nil : $a[1]));
-        return self.$puts(item, item.$x(), item.$y());}, TMP_1.$$s = self, TMP_1), $a).call($b);
+      return $a = Opal.to_ary(self.$random_placement()), item['$x='](($a[0] == null ? nil : $a[0])), item['$y='](($a[1] == null ? nil : $a[1]))}, TMP_1.$$s = self, TMP_1), $a).call($b);
     };
 
     def.$draw = function(ctx) {
-      var $a, $b, TMP_2, self = this, offset_x = nil, offset_y = nil;
+      var $a, $b, TMP_2, self = this;
 
-      $a = Opal.to_ary([$rb_minus($rb_plus(self.$x(), $scope.get('G').$camera().$x()), ($rb_divide(self.$pixel_width(), 2))), $rb_minus($rb_plus(self.$y(), $scope.get('G').$camera().$y()), ($rb_divide(self.$pixel_height(), 2)))]), offset_x = ($a[0] == null ? nil : $a[0]), offset_y = ($a[1] == null ? nil : $a[1]);
-      ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": [offset_x, offset_y], "width": self.$pixel_width(), "height": self.$pixel_height(), "color": "goldenrod"}));
+      ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": [self.$offset_x(), self.$offset_y()], "width": self.$pixel_width(), "height": self.$pixel_height(), "color": "#7FCB39"}));
       return ($a = ($b = self.$items()).$each, $a.$$p = (TMP_2 = function(item){var self = TMP_2.$$s || this, $a, $b, old_x = nil, old_y = nil;
 if (item == null) item = nil;
       $a = [item.$x(), item.$y()], old_x = $a[0], old_y = $a[1];
-        (($a = [$rb_plus(offset_x, item.$x())]), $b = item, $b['$x='].apply($b, $a), $a[$a.length-1]);
-        (($a = [$rb_plus(offset_y, item.$y())]), $b = item, $b['$y='].apply($b, $a), $a[$a.length-1]);
+        (($a = [$rb_plus(self.$offset_x(), item.$x())]), $b = item, $b['$x='].apply($b, $a), $a[$a.length-1]);
+        (($a = [$rb_plus(self.$offset_y(), item.$y())]), $b = item, $b['$y='].apply($b, $a), $a[$a.length-1]);
         item.$draw(ctx);
         return $a = [old_x, old_y], item['$x=']($a[0]), item['$y=']($a[1]);}, TMP_2.$$s = self, TMP_2), $a).call($b);
+    };
+
+    def.$update = function(ctx) {
+      var $a, $b, TMP_3, self = this;
+
+      return ($a = ($b = self.$items()).$each, $a.$$p = (TMP_3 = function(item){var self = TMP_3.$$s || this, $a, $b, old_x = nil, old_y = nil;
+if (item == null) item = nil;
+      $a = [item.$x(), item.$y()], old_x = $a[0], old_y = $a[1];
+        (($a = [$rb_plus(self.$offset_x(), item.$x())]), $b = item, $b['$x='].apply($b, $a), $a[$a.length-1]);
+        (($a = [$rb_plus(self.$offset_y(), item.$y())]), $b = item, $b['$y='].apply($b, $a), $a[$a.length-1]);
+        item.$update(ctx);
+        return $a = [old_x, old_y], item['$x=']($a[0]), item['$y=']($a[1]);}, TMP_3.$$s = self, TMP_3), $a).call($b);
+    };
+
+    def.$offset_x = function() {
+      var self = this;
+
+      return $rb_minus($rb_plus(self.$x(), $scope.get('G').$camera().$x()), ($rb_divide(self.$pixel_width(), 2)));
+    };
+
+    def.$offset_y = function() {
+      var self = this;
+
+      return $rb_minus($rb_plus(self.$y(), $scope.get('G').$camera().$y()), ($rb_divide(self.$pixel_height(), 2)));
+    };
+
+    def.$offset = function() {
+      var self = this;
+
+      return [self.$offset_x(), self.$offset_y()];
     };
 
     def.$pixel_width = function() {
@@ -16728,10 +16892,16 @@ if (item == null) item = nil;
       return $rb_times(self.$height(), $scope.get('G').$tilesize());
     };
 
-    return (def.$random_placement = function() {
+    def.$pixels = function() {
       var self = this;
 
-      return [$rb_times(self.$Array($range(1, self.$width(), true)).$sample(), $scope.get('G').$tilesize()), $rb_times(self.$Array($range(1, self.$height(), true)).$sample(), $scope.get('G').$tilesize())];
+      return [self.$pixel_width(), self.$pixel_height()];
+    };
+
+    return (def.$random_placement = function() {
+      var $a, $b, $c, self = this;
+
+      return [$rb_times(($a = ($b = self.$Array($range(1, self.$width(), true))).$select, $a.$$p = "odd?".$to_proc(), $a).call($b).$sample(), $scope.get('G').$tilesize()), $rb_times(($a = ($c = self.$Array($range(1, self.$height(), true))).$select, $a.$$p = "odd?".$to_proc(), $a).call($c).$sample(), $scope.get('G').$tilesize())];
     }, nil) && 'random_placement';
   })(self, null)
 };
@@ -16739,26 +16909,41 @@ if (item == null) item = nil;
 /* Generated by Opal 0.7.0.beta3 */
 Opal.modules["lib/item"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
-  function $rb_plus(lhs, rhs) {
-    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs + rhs : lhs['$+'](rhs);
+  function $rb_minus(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
   }
   function $rb_divide(lhs, rhs) {
     return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs / rhs : lhs['$/'](rhs);
   }
-  function $rb_minus(lhs, rhs) {
-    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs - rhs : lhs['$-'](rhs);
+  function $rb_plus(lhs, rhs) {
+    return (typeof(lhs) === 'number' && typeof(rhs) === 'number') ? lhs + rhs : lhs['$+'](rhs);
   }
-  var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $range = Opal.range;
+  var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $module = Opal.module, $hash2 = Opal.hash2, $klass = Opal.klass, $range = Opal.range;
 
-  Opal.add_stubs(['$attr_accessor', '$new', '$downcase', '$draw', '$x', '$y', '$near_player?', '$name', '$height', '$include?', '$mid_x', '$mid_y']);
+  Opal.add_stubs(['$draw_rect', '$x', '$y', '$width', '$height', '$mid', '$attr_accessor', '$new', '$downcase', '$draw', '$near_player?', '$name', '$pickup', '$player', '$set_item', '$include?', '$mid_x', '$mid_y']);
+  (function($base) {
+    var self = $module($base, 'Debug');
+
+    var def = self.$$proto, $scope = self.$$scope;
+
+    def.$draw = function(ctx) {
+      var self = this, radius = nil;
+
+      radius = 50;
+      ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": [$rb_minus(self.$x(), $rb_divide(radius, 2)), $rb_minus(self.$y(), $rb_divide(radius, 2))], "width": $rb_plus(self.$width(), radius), "height": $rb_plus(self.$height(), radius), "color": "white"}));
+      ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": [self.$x(), self.$y()], "width": self.$width(), "height": self.$height(), "color": "red"}));
+      return ctx.$draw_rect($hash2(["top_left", "width", "height", "color"], {"top_left": self.$mid(), "width": 1, "height": 1, "color": "red"}));
+    }
+        ;Opal.donate(self, ["$draw"]);
+  })(self);
   return (function($base, $super) {
     function $Item(){};
     var self = $Item = $klass($base, $super, 'Item', $Item);
 
     var def = self.$$proto, $scope = self.$$scope;
 
-    def.img = def.font = nil;
-    self.$attr_accessor("x", "y", "height", "width", "name");
+    def.img = def.font = def.held = nil;
+    self.$attr_accessor("x", "y", "height", "width", "name", "held");
 
     def.$initialize = function(name) {
       var self = this;
@@ -16780,12 +16965,37 @@ Opal.modules["lib/item"] = function(Opal) {
       };
     };
 
-    return (def['$near_player?'] = function(radius) {
+    def.$mid = function() {
+      var self = this;
+
+      return [$rb_plus(self.$x(), $rb_divide(self.$width(), 2)), $rb_plus(self.$y(), $rb_divide(self.$height(), 2))];
+    };
+
+    def.$update = function(ctx) {
+      var $a, $b, self = this;
+
+      if ((($a = ($b = self['$near_player?'](50), $b !== false && $b !== nil ?$scope.get('G').$player().$pickup() : $b)) !== nil && (!$a.$$is_boolean || $a == true))) {
+        return $scope.get('G').$player().$set_item(self)
+        } else {
+        return nil
+      };
+    };
+
+    def['$near_player?'] = function(radius) {
       var $a, self = this;
 
-      return ($a = ($range($rb_minus($scope.get('G').$mid_x(), radius), $rb_plus($scope.get('G').$mid_x(), radius), false))['$include?'](self.$x()), $a !== false && $a !== nil ?($range($rb_minus($scope.get('G').$mid_y(), radius), $rb_plus($scope.get('G').$mid_y(), radius), false))['$include?'](self.$y()) : $a);
-    }, nil) && 'near_player?';
-  })(self, null)
+      if (radius == null) {
+        radius = 50
+      }
+      return ($a = ($range(($rb_minus(self.$x(), radius)), ($rb_plus(self.$x(), radius)), false))['$include?']($scope.get('G').$mid_x()), $a !== false && $a !== nil ?($range(($rb_minus(self.$y(), radius)), ($rb_plus(self.$y(), radius)), false))['$include?']($scope.get('G').$mid_y()) : $a);
+    };
+
+    return (def['$held?'] = function() {
+      var self = this;
+
+      return self.held;
+    }, nil) && 'held?';
+  })(self, null);
 };
 
 /* Generated by Opal 0.7.0.beta3 */
@@ -16799,7 +17009,7 @@ Opal.modules["lib/item"] = function(Opal) {
   }
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $hash2 = Opal.hash2;
 
-  Opal.add_stubs(['$require', '$new', '$width', '$height', '$set_items', '$sample', '$set_level', '$mid', '$set_camera', '$track', '$bounds=', '$pixel_width', '$pixel_height', '$draw', '$update', '$run!']);
+  Opal.add_stubs(['$require', '$new', '$width', '$height', '$set_items', '$sample', '$set_level', '$set_player', '$mid', '$set_camera', '$track', '$bounds=', '$pixel_width', '$pixel_height', '$draw', '$update', '$run!']);
   self.$require("dare");
   self.$require("lib/unweapon"+ '/../' + "game");
   self.$require("lib/unweapon"+ '/../' + "camera");
@@ -16814,7 +17024,7 @@ Opal.modules["lib/item"] = function(Opal) {
 
     var def = self.$$proto, $scope = self.$$scope, TMP_1;
 
-    def.level = def.camera = def.player = nil;
+    def.level = def.player = def.camera = nil;
     def.$initialize = TMP_1 = function() {
       var $a, $b, TMP_2, $c, $d, self = this, $iter = TMP_1.$$p, $yield = $iter || nil;
 
@@ -16826,6 +17036,7 @@ Opal.modules["lib/item"] = function(Opal) {
       return $scope.get('Item').$new($scope.get('Items').$sample())}, TMP_2.$$s = self, TMP_2), $a).call($b, 10));
       $scope.get('G').$set_level(self.level);
       self.player = $scope.get('Player').$new();
+      $scope.get('G').$set_player(self.player);
       self.camera = ($a = $scope.get('Camera')).$new.apply($a, [].concat($scope.get('G').$mid()));
       $scope.get('G').$set_camera(self.camera);
       self.camera.$track(self.player);
@@ -16842,9 +17053,11 @@ Opal.modules["lib/item"] = function(Opal) {
     return (def.$update = function() {
       var self = this;
 
-      self.player.$update();
+      self.player.$update(self);
+      self.level.$update(self);
       return self.camera.$update(self);
     }, nil) && 'update';
   })(self, (($scope.get('Dare')).$$scope.get('Window')));
-  return $scope.get('Unweapon').$new()['$run!']();
+  Opal.cdecl($scope, 'LD', $scope.get('Unweapon').$new());
+  return $scope.get('LD')['$run!']();
 })(Opal);
