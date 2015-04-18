@@ -17,22 +17,30 @@ class Camera
   end
 
   def tracking
-    @tracking || Struct.new(:x, :y, :speed).new(@x, @y, 1)
+    @tracking
   end
 
   def draw(ctx)
-    ctx.draw_rect(top_left: [tracking.x, tracking.y], width: 20, height: 20, color: 'black')
+    ctx.draw_rect(top_left: [tracking.x, tracking.y], width: 20, height: 20, color: 'black') if tracking
     ctx.draw_rect(top_left: [x, y], width: 20, height: 20, color: 'black')
   end
 
   def update(ctx)
-    speed = tracking.speed
+    speed = (if tracking
+               tracking.speed
+             else
+               1
+             end)
     @y -= speed if ctx.button_down? Dare::KbDown
     @x -= speed if ctx.button_down? Dare::KbRight
     @x += speed if ctx.button_down? Dare::KbLeft
     @y += speed if ctx.button_down? Dare::KbUp
     @x = G.clamp(@x, bounds[:x][0], bounds[:x][1])
     @y = G.clamp(@y, bounds[:y][0], bounds[:y][1])
+    if tracking
+      tracking.x = @x
+      tracking.y = @y
+    end
   end
 end
 

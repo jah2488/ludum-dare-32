@@ -1,7 +1,13 @@
 class Game
-  attr_reader :width, :height, :tilesize
+  attr_reader :width, :height, :tilesize, :current_level
   def initialize(width = 640, height = 480, tilesize = 32)
     @width = width; @height = height; @tilesize = tilesize
+  end
+  def current_level
+    @current_level
+  end
+  def set_level(level)
+    @current_level = level
   end
   def mid
     [mid_x, mid_y]

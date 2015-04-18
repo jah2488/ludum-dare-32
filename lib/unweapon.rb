@@ -1,55 +1,37 @@
 require 'dare'
 require_relative 'game'
 require_relative 'camera'
+require_relative 'player'
+require_relative 'level'
+require_relative 'item'
 
-class Player
-  attr_reader :x, :y, :speed
-  def initialize
-    @x = @y = 0
-    @img = Dare::Image.new('assets/player.png')
-    @speed = 2.4
-  end
-  def draw(ctx)
-    @img.draw(*G.mid)
-  end
-  def update
-  end
-end
-class Level
-  attr_reader :x, :y, :width, :height, :enemies, :items
-  def initialize(x = 0, y = 0, width = 25, height = 20, enemies = [], items = [])
-    @x = x; @y = y; @width = width; @height = height; @enemies = enemies; @items = items;
-  end
-
-  def draw(ctx)
-    offset_x, offset_y = [x + G.camera.x - (pixel_width / 2), y + G.camera.y - (pixel_height / 2)]
-    ctx.draw_rect(top_left: [offset_x, offset_y], width: pixel_width, height: pixel_height, color: 'goldenrod')
-  end
-
-  def pixel_width
-    width * G.tilesize
-  end
-
-  def pixel_height
-    height * G.tilesize
-  end
-end
 G = Game.new
+Items = %w(dirt milk coin)
+
 class Unweapon < Dare::Window
 
   def initialize
-    super width: G.width, height: G.height, border: true
+    super(width: G.width, height: G.height, border: true)
     @level  = Level.new
+    @level.set_items Array.new(10) { Item.new(Items.sample) }
+
+    G.set_level(@level)
+
     @player = Player.new
+
+    #So much camera setup. some abstraction is missing/wrong :[
     @camera = Camera.new(*G.mid)
     G.set_camera(@camera)
     @camera.track(@player)
+    @camera.bounds = {
+      x: [(@level.pixel_width  / 4) * -1, @level.pixel_width],
+      y: [(@level.pixel_height / 4) * -1, @level.pixel_height]
+    }
   end
 
   def draw
     @level.draw(self)
     @player.draw(self)
-    @camera.draw(self)
   end
 
   def update
@@ -62,10 +44,12 @@ end
 Unweapon.new.run!
 
 # TODO
-# Create Player
-# Create Level
-#   - Level only needs a width and height of the island, location of exit, location of spawn, enemies, items
-# Player should be able to walk around level
+# DONE Create Player
+# DONE Create Level
+# DONE  - Level only needs a width and height of the island, location of exit, location of spawn, enemies, items
+# DONE Player should be able to walk around level
+# DONE Create Items
+# DONE Items should be able to be placed on level
 # Player should be able to pick up items found in the level
 # Enemy should exist on a level
 # Enemy should move on level
