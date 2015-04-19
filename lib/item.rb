@@ -1,12 +1,3 @@
-module Debug
-  def draw(ctx)
-    radius = 50
-    ctx.draw_rect(top_left: [x - radius/2, y - radius/2], width: width + radius, height: height + radius, color: 'white')    
-    ctx.draw_rect(top_left: [x, y], width: width, height: height, color: 'red')
-    ctx.draw_rect(top_left: mid, width: 1, height: 1, color: 'red')
-  end
-end
-
 class Item
   # include Debug
   attr_accessor :x, :y, :height, :width, :name, :held
@@ -21,7 +12,7 @@ class Item
   def draw(ctx)
     # super(ctx)
     @img.draw(x, y)
-    @font.draw(name, x, y + height / 2) if near_player?(50)
+    # @font.draw(name, x, y + height / 2) if near_player?(50)
   end
 
   def mid
@@ -32,7 +23,7 @@ class Item
   end
 
   def update(ctx)
-    if near_player?(50) && G.player.pickup
+    if near_player?(40) && G.player.pickup
       G.player.set_item(self)
     end
   end

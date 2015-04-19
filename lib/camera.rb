@@ -12,11 +12,6 @@ class Camera
     @tracking = obj
   end
 
-  def draw(ctx)
-    ctx.draw_rect(top_left: [tracking.x, tracking.y], width: 20, height: 20, color: 'black') if tracking
-    ctx.draw_rect(top_left: [x, y], width: 20, height: 20, color: 'black')
-  end
-
   def update(ctx)
     speed = 1
     speed = tracking.speed if tracking
